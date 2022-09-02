@@ -40,13 +40,9 @@ void function FSU_init ()
   
   // Register commands
   FSU_RegisterCommand( "help", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "help <page>\x1b[0m Lists registered commands", "core", FSU_C_Help, [ "h" ] )
-  FSU_RegisterCommand( "name", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "name\x1b[0m Returns the name of the current server", "core", FSU_C_Name )
-  FSU_RegisterCommand( "owner", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "owner\x1b[0m Returns the name of the owner if provided", "core", FSU_C_Owner )
-  FSU_RegisterCommand( "mods", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "mods <page>\x1b[0m Lists installed mods on server. This list has to be manually updated and may not be uptodate!","core", FSU_C_Mods )
-  FSU_RegisterCommand( "rules", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "rules <page>\x1b[0m Lists rules", "core", FSU_C_Rules)
+  FSU_RegisterCommand( "rules", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "rules\x1b[0m Lists rules", "core", FSU_C_Rules)
   FSU_RegisterCommand( "vote", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "vote <number>\x1b[0m Allows you to vote on polls", "core", FSU_C_Vote )
   FSU_RegisterCommand( "usage", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "usage\x1b[0m <command> Prints usage of provided command", "core", FSU_C_Usage )
-  FSU_RegisterCommand( "discord", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "discord\x1b[0m Prints a discord invite", "core", FSU_C_Discord, [ "dc" ] )
   FSU_RegisterCommand( "report", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "report <player>\x1b[0m Creates a report and prints it in console so you can copy it", "core", FSU_C_Report )
   if( FSU_GetBool("FSU_ENABLE_SWITCH") )
     FSU_RegisterCommand( "switch", "\x1b[113m" + FSU_GetString("FSU_PREFIX") + "switch\x1b[0m switches team", "core", FSU_C_Switch )
@@ -61,54 +57,13 @@ void function FSU_init ()
 // callbacks
 void function OnClientConnected ( entity player )
 {
-  if( FSU_GetBool( "FSU_WELCOME_ENABLE_MESSAGE_BEFORE" ) )
-    Chat_ServerPrivateMessage( player, FSU_GetString("fsu_welcome_message_before"), false )
-  
-  string msg_hosted_by
-  if( FSU_GetBool( "FSU_WECLOME_ENABLE_OWNER" ) )
-  {
-    msg_hosted_by += "Hosted by: \x1b[113m\"" + FSU_GetString("fsu_owner") + "\"\x1b[0m"
-    Chat_ServerPrivateMessage( player, msg_hosted_by, false )
-  }
-  
-  int list_count
-  
-  string msg_commands
-  if( FSU_GetBool( "FSU_WELCOME_ENABLE_COMMANDS" ) )
-  {
-    msg_commands += "Commands:"
-    foreach ( cmd in FSU_GetStringArray("fsu_commands") )
-    {
-      if( list_count > 4 )
-        break
-      
-      msg_commands += "\n    \x1b[113m-\x1b[0m " + cmd
-      
-      list_count++
-    }
-    
-    Chat_ServerPrivateMessage( player, msg_commands, false )
-  }
-  
-  string msg_rules
-  if( FSU_GetBool( "FSU_WELCOME_ENABLE_RULES" ) )
-  {
-    msg_rules += "Rules:"
-    foreach ( _index, rule in FSU_GetStringArray("fsu_rules") )
-    {
-      if( list_count > 4 )
-        break
-      
-      msg_rules += "\n    \x1b[113m" + ( _index + 1 ) + ".\x1b[0m " + rule
-      
-      list_count++
-    }
-    
-    Chat_ServerPrivateMessage( player, msg_rules, false )
-  }
-  
-  if ( FSU_GetBool( "FSU_WELCOME_ENABLE_MESSAGE_AFTER" ) )
-    Chat_ServerPrivateMessage( player, FSU_GetString("fsu_welcome_message_after"), false )
+  Chat_ServerPrivateMessage(player, "\x1b[97mWelcome to \x1b[95mYour Local Bunnings\x1b[97m, where lowest prices are just the beginning.", false)
+  Chat_ServerPrivateMessage(player, "\x1b[93mRules:", false)
+  Chat_ServerPrivateMessage(player, "\x1b[33m 1. Keep it chill. Competitive talk is fine but aggression and slurs will not be tolerated.", false)
+  Chat_ServerPrivateMessage(player, "\x1b[33m 2. Do not spam the chat. This includes spam mods and macros.", false)
+  Chat_ServerPrivateMessage(player, "\x1b[33m 3. Cheating or working around the game's controls is banned.", false)
+  Chat_ServerPrivateMessage(player, "Report rule breakers on the Northstar Discord - \x1b[94mdiscord.gg/northstar", false)
+  Chat_ServerPrivateMessage(player, "View available chat commands with \x1b[92m!help\x1b[0m. Questions? Contact \x1b[94mcpdt#5830\x1b[0m on Discord.", false)
   
   ShowActivePoll( player )
 }
@@ -384,97 +339,11 @@ void function FSU_C_Help ( entity player, array < string > args )
 // !rules
 void function FSU_C_Rules ( entity player, array < string > args )
 {
-  string returnMessage
-  int page
-  
-  
-  int pages = FSU_GetStringArray("fsu_rules").len() % 5 == 0 ? ( FSU_GetStringArray("fsu_rules").len() / 5 ) : ( FSU_GetStringArray("fsu_rules").len() / 5 + 1 )
-  
-  if ( args.len() != 0 )
-    page = args[0].tointeger() - 1
-  
-  if ( args.len() != 0 && args[0].tointeger() > pages )
-  {
-    Chat_ServerPrivateMessage( player, "Maximum number of pages is \x1b[113m" + pages + "\x1b[0m!", false )
-    return
-  }
-  
-  if ( args.len() != 0 && !IsValidVoteInt( args[0], pages ) )
-  {
-    Chat_ServerPrivateMessage( player, "Invalid argument!", false )
-    return
-  }
-  
-  
-  int _index = 0
-  foreach ( cmd in FSU_GetStringArray("fsu_rules") )
-  {
-    if ( _index >= page * 5 && _index < ( page + 1 ) * 5 )
-      returnMessage += "\n    \x1b[113m-\x1b[0m " + cmd
-      
-    _index++
-  }
-  
-  returnMessage += "\nShowing page \x1b[113m[" + ( page + 1 ) + "/" + pages + "]\x1b[0m"
-  
-  Chat_ServerPrivateMessage( player, "Rules: " + returnMessage, false )
-}
-
-// !owner
-void function FSU_C_Owner ( entity player, array < string > args )
-{
-  Chat_ServerPrivateMessage( player, "Owner: \x1b[113m\"" + FSU_GetString("fsu_owner") + "\"\x1b[0m", false )
-}
-
-// !name
-void function FSU_C_Name ( entity player, array < string > args )
-{
-  Chat_ServerPrivateMessage( player, "Server name: \x1b[113m\"" + GetConVarString("ns_server_name") + "\"\x1b[0m", false )
-}
-
-// !mods
-void function FSU_C_Mods ( entity player, array < string > args )
-{
-  string returnMessage
-  int page
-  
-  
-  int pages = FSU_GetStringArray("fsu_mods").len() % 5 == 0 ? ( FSU_GetStringArray("fsu_mods").len() / 5 ) : ( FSU_GetStringArray("fsu_mods").len() / 5 + 1 )
-  
-  if ( args.len() != 0 )
-    page = args[0].tointeger() - 1
-  
-  if ( args.len() != 0 && args[0].tointeger() > pages )
-  {
-    Chat_ServerPrivateMessage( player, "Maximum number of pages is \x1b[113m" + pages + "\x1b[0m!", false )
-    return
-  }
-  
-  if ( args.len() != 0 && !IsValidVoteInt( args[0], pages ) )
-  {
-    Chat_ServerPrivateMessage( player, "Invalid argument!", false )
-    return
-  }
-  
-  
-  int _index = 0
-  foreach ( cmd in FSU_GetStringArray("fsu_mods") )
-  {
-    if ( _index >= page * 5 && _index < ( page + 1 ) * 5 )
-      returnMessage += "\n    \x1b[113m-\x1b[0m " + cmd
-      
-    _index++
-  }
-  
-  returnMessage += "\nShowing page \x1b[113m[" + ( page + 1 ) + "/" + pages + "]\x1b[0m"
-  
-  Chat_ServerPrivateMessage( player, "Mods: " + returnMessage, false )
-}
-
-// !discord
-void function FSU_C_Discord ( entity player, array < string > args )
-{
-  Chat_ServerPrivateMessage( player, "Join our discord: \x1b[113m" + FSU_GetString("fsu_discord") + "\x1b[0m", false )
+  Chat_ServerPrivateMessage(player, "\x1b[93mRules:", false)
+  Chat_ServerPrivateMessage(player, "\x1b[33m 1. Keep it chill. Competitive talk is fine but aggression and slurs will not be tolerated.", false)
+  Chat_ServerPrivateMessage(player, "\x1b[33m 2. Do not spam the chat. This includes spam mods and macros.", false)
+  Chat_ServerPrivateMessage(player, "\x1b[33m 3. Cheating or working around the game's controls is banned.", false)
+  Chat_ServerPrivateMessage(player, "Report rule breakers on the Northstar Discord - \x1b[94mdiscord.gg/northstar", false)
 }
 
 // !vote
