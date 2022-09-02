@@ -35,6 +35,7 @@ bool poll_show_result
 void function FSU_init ()
 {
   AddCallback_OnClientConnected ( OnClientConnected )
+  AddCallback_OnPlayerRespawned ( OnPlayerRespawned )
   
   
   // Register commands
@@ -109,7 +110,16 @@ void function OnClientConnected ( entity player )
   if ( FSU_GetBool( "FSU_WELCOME_ENABLE_MESSAGE_AFTER" ) )
     Chat_ServerPrivateMessage( player, FSU_GetString("fsu_welcome_message_after"), false )
   
-  
+  ShowActivePoll( player )
+}
+
+void function OnPlayerRespawned ( entity player )
+{
+  ShowActivePoll( player )
+}
+
+void function ShowActivePoll( entity player )
+{
   // If a poll is active try to show it to late joiners
   // This means we need to calc new length
   if ( FSU_CanCreatePoll() )
