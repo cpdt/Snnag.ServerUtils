@@ -3,6 +3,13 @@ A framework for chat command based server mods. Doesn't spam the chat, doesn't c
 
 The mod is separated into modules all of which have extensive settings and apart from the core can be entirely disabled.
 
+## Fixes from vanilla
+
+This repo contains a few small fixes/improvements from the [vanilla version](https://northstar.thunderstore.io/package/Fifty/Server_Utilities/).
+
+ - Polls are shown again to players when they respawn. Without this the poll would disappear even if it was still active.
+ - Polls shown in the postmatch state are moved to the center top of the screen, to avoid overlapping with the match top 3.
+
 ### Core
 The core module implements a **chat** and a **poll** handler. For more information on the API check the API section.
 
