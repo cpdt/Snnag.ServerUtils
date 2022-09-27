@@ -121,7 +121,10 @@ void function OnClientConnected ( entity player )
   
   // Show poll to late joiners, we need to calculate new_length so it ends at the same time for all players
   // This is just visual
-  SendHudMessage( player, poll_before + "\n" + poll_text , 0.005, 0.3, 240, 180, 40, 230, 0.2, poll_time - ( Time() - poll_start ), 0.2)
+  if ( GetGameState() > eGameState.Playing )
+    SendHudMessage( player, poll_before + "\n" + poll_text , 0.3, 0.1, 240, 180, 40, 230, 0.2, poll_time - ( Time() - poll_start ), 0.2)
+  else
+    SendHudMessage( player, poll_before + "\n" + poll_text , 0.005, 0.3, 240, 180, 40, 230, 0.2, poll_time - ( Time() - poll_start ), 0.2)
 }
 
 ClServer_MessageStruct function CheckForCommand( ClServer_MessageStruct message )
@@ -264,8 +267,12 @@ void function FSU_CreatePoll ( array < string > options, string before, float du
     poll_text += _index + 1 + ". " + line + "\n"
   
   
-  foreach( player in GetPlayerArray() )
-    SendHudMessage( player, poll_before + "\n" + poll_text , 0.005, 0.3, 240, 180, 40, 230, 0.2, poll_time, 0.2)
+  if ( GetGameState() > eGameState.Playing )
+    foreach( player in GetPlayerArray() )
+      SendHudMessage( player, poll_before + "\n" + poll_text , 0.3, 0.1, 240, 180, 40, 230, 0.2, poll_time, 0.2)
+  else
+    foreach( player in GetPlayerArray() )
+      SendHudMessage( player, poll_before + "\n" + poll_text , 0.005, 0.3, 240, 180, 40, 230, 0.2, poll_time, 0.2)
   
   thread FSU_PollEndTimeWatcher_Threaded ()
 }
